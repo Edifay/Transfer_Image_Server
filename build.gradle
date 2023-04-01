@@ -1,0 +1,26 @@
+plugins {
+    id 'java'
+    id "com.github.johnrengelman.shadow" version "8.1.1"
+}
+
+group = 'fr.arnaud'
+version = ''
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'fr.arnaud.Main'
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.14.1'
+}
+
+test {
+    useJUnitPlatform()
+}
+
