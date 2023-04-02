@@ -41,6 +41,7 @@ public class ClientManager {
         System.out.println("Finished receiving images " + client.getIdentity());
 
         closeClient();
+        System.gc();
     }
 
     public void closeClient() throws IOException {

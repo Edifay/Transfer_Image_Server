@@ -52,6 +52,7 @@ public class ImagesReceiver {
             receiveAndWrite(out, descriptor);
             out.flush();
             out.close();
+            System.gc();
             System.out.println("Flush " + descriptor.getName() + " total of \t\t" + (int) byteToMegaByte(descriptor.size) + "MB.");
         }
 
