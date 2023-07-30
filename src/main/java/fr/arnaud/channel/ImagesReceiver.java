@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import static apifornetwork.data.packets.Packet.getByteForObject;
+
 public class ImagesReceiver {
 
     private final SocketMake client;
@@ -88,7 +89,7 @@ public class ImagesReceiver {
             System.exit(-1);
         }
 
-        ExifManager.manageExif(mediaManager, descriptor);
+        new Thread(() -> ExifManager.manageExif(mediaManager, descriptor)).start();
     }
 
     public ReceiveSecurePacket waitForNextReceiveData() {

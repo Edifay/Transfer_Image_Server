@@ -65,7 +65,6 @@ public abstract class SocketMake {
                         this.emit(receivePacket);
                     }
                 } catch (IOException | ClassNotFoundException e) {
-                    e.printStackTrace();
                     try {
                         this.close();
                     } catch (IOException ex) {
