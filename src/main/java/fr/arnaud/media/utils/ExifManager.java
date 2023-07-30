@@ -32,22 +32,26 @@ public class ExifManager {
         BasicFileAttributeView attributes = Files.getFileAttributeView(Path.of(path), BasicFileAttributeView.class);
         FileTime time = null;
         Metadata metadata = null;
+        FileInputStream stream = null;
         try {
-            metadata = ImageMetadataReader.readMetadata(new FileInputStream(path));
+            stream = new FileInputStream(path);
+            metadata = ImageMetadataReader.readMetadata(stream);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         try { // GET DATETAKEN FOR IMAGE
-            ExifSubIFDDirectory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
-            if (directory != null) {
-                Date date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
-                time = FileTime.fromMillis(date.getTime());
+            if (metadata != null) {
+                ExifSubIFDDirectory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
+                if (directory != null) {
+                    Date date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
+                    time = FileTime.fromMillis(date.getTime());
+                }
             }
         } catch (Exception ignored) {
         }
 
-        if (time == null) // GET MEDIACREATION DATE FOR VIDEO
+        if (time == null && metadata != null) // GET MEDIACREATION DATE FOR VIDEO
             try {
                 Mp4Directory directory = metadata.getFirstDirectoryOfType(Mp4Directory.class);
                 if (directory != null) {
@@ -57,12 +61,14 @@ public class ExifManager {
             } catch (Exception ignored) {
             }
 
-
-        if (time == null) // IF NO ONE WAS FIND USE THE DEFAULT TIME GIVEN BY THE PHONE
+        if (time == null || time.toMillis() <= 0L)// IF NO ONE WAS FIND USE THE DEFAULT TIME GIVEN BY THE PHONE
             time = FileTime.fromMillis(epoch);
 
         if (epoch != 0L)
             attributes.setTimes(time, time, time);
+
+        if (stream != null)
+            stream.close();
     }
 
 }
