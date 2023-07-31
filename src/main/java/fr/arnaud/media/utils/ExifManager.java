@@ -14,7 +14,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.FileTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalField;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
 
 public class ExifManager {
@@ -44,7 +49,8 @@ public class ExifManager {
             if (metadata != null) {
                 ExifSubIFDDirectory directory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
                 if (directory != null) {
-                    Date date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
+                    TimeZone timeZone = TimeZone.getTimeZone("GMT" + directory.getString(ExifSubIFDDirectory.TAG_TIME_ZONE_ORIGINAL));
+                    Date date = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL, timeZone);
                     time = FileTime.fromMillis(date.getTime());
                 }
             }
@@ -54,7 +60,7 @@ public class ExifManager {
         if (time == null && metadata != null) // GET MEDIACREATION DATE FOR VIDEO
             try {
                 Mp4Directory directory = metadata.getFirstDirectoryOfType(Mp4Directory.class);
-                if (directory != null) {
+                if (directory != null) { // TimeZone for video is included in the CREATION TIME TAG.
                     Date date = directory.getDate(Mp4Directory.TAG_CREATION_TIME);
                     time = FileTime.fromMillis(date.getTime());
                 }
