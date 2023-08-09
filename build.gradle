@@ -19,6 +19,8 @@ repositories {
 dependencies {
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.14.1'
     implementation 'com.drewnoakes:metadata-extractor:2.18.0'
+
+    implementation files('/libs/Jazer.jar')
 }
 
 

@@ -57,10 +57,15 @@ public class SetupLoader {
         public final int port;
 
         public Settings(final String destination, final String password, final int port) {
-            this.destination = destination;
             this.password = password;
             this.port = port;
+
+            if (!String.valueOf(destination.charAt(destination.length() - 1)).equals(File.separator))
+                this.destination = destination + File.separator;
+            else this.destination = destination;
         }
+
+
     }
 
 }

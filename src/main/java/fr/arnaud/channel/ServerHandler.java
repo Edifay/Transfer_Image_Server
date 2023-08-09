@@ -1,9 +1,12 @@
 package fr.arnaud.channel;
 
-import apifornetwork.tcp.Secure.SecureServerTCP;
-import apifornetwork.tcp.SocketMake;
 import fr.arnaud.channel.utils.CertLoader;
 import fr.arnaud.utils.SetupLoader;
+import fr.jazer.session.Session;
+import fr.jazer.session.SessionServer;
+import fr.jazer.session.utils.crypted.CertFormat;
+import fr.jazer.session.utils.crypted.SecureType;
+import fr.jazer.session.utils.crypted.ServerCertConfig;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -16,31 +19,33 @@ public class ServerHandler {
 
     private final SetupLoader.Settings settings;
 
-    private final SecureServerTCP server;
+    private final SessionServer server;
 
     public ServerHandler(final SetupLoader.Settings settings) throws UnrecoverableKeyException, CertificateException, IOException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         this.settings = settings;
-        final CertLoader.CertConfiguration certConfiguration = CertLoader.loadCert();
-        this.server = new SecureServerTCP(settings.port, (short) 8192, certConfiguration.stream, certConfiguration.password);
 
-        this.server.addEventOnNewClient(this::onNewClient);
-        this.server.startListenClient();
+        final CertLoader.CertConfiguration certConfiguration = CertLoader.loadCert();
+        ServerCertConfig config = new ServerCertConfig(certConfiguration.stream, certConfiguration.password, SecureType.TLSv1_2, CertFormat.JKS);
+        this.server = new SessionServer();
+        this.server.openSession(settings.port, config);
+
+        this.server.addSessionListener(this::onNewClient);
 
         System.out.println("Server online");
         System.out.println("Waiting for connection");
     }
 
-    public SecureServerTCP getServer() {
+    public SessionServer getServer() {
         return this.server;
     }
 
 
-    public void onNewClient(final SocketMake socketMake) {
+    public void onNewClient(final Session session) {
         try {
-            ClientManager manager = new ClientManager(settings, socketMake);
+            ClientManager manager = new ClientManager(settings, session);
             manager.handle();
         } catch (IOException | InterruptedException | ClassNotFoundException e) {
-            System.err.println("Error during handling : " + socketMake.getIdentity() + "\n" + e.getMessage());
+            System.err.println("Error during handling : " + session.getStringID() + "\n" + e.getMessage());
         }
     }
 

@@ -1,36 +1,35 @@
 package fr.arnaud.channel;
 
-import apifornetwork.data.packets.Packet;
-import apifornetwork.data.packets.ReceiveSecurePacket;
-import apifornetwork.data.packets.SendSecurePacket;
-import apifornetwork.tcp.SocketMake;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.arnaud.media.ImageDescriptor;
 import fr.arnaud.channel.utils.PType;
 import fr.arnaud.media.MediaManager;
 import fr.arnaud.utils.SetupLoader;
+import fr.jazer.session.RPacket;
+import fr.jazer.session.SPacket;
+import fr.jazer.session.Session;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.ArrayList;
+
+import static fr.arnaud.channel.Utils.getByteForObject;
 
 public class HandShake {
 
-    private final SocketMake client;
+    private final Session client;
     private final SetupLoader.Settings settings;
     private final MediaManager mediaManager;
 
-    public HandShake(final SetupLoader.Settings settings, final SocketMake client, final MediaManager mediaManager) {
+    public HandShake(final SetupLoader.Settings settings, final Session client, final MediaManager mediaManager) {
         this.client = client;
         this.settings = settings;
         this.mediaManager = mediaManager;
     }
 
-    public HandShakeData getHandShakeData() throws InterruptedException, IOException, ClassNotFoundException {
-
+    public HandShakeData getHandShakeData() throws IOException {
         String password = receivePassword();
+        System.out.println("Password : " + password);
         if (!password.equals(settings.password)) {
             sendPasswordResult(false);
             return new HandShakeData(false, null);
@@ -38,13 +37,12 @@ public class HandShake {
         sendPasswordResult(true);
 
         ArrayList<ImageDescriptor> imagesFromPhone = receiveImagesDescriptors();
-        System.out.println("Device " + client.getIdentity() + " have " + imagesFromPhone.size() + " media.");
-
+        System.out.println("Device " + client.getStringID() + " have " + imagesFromPhone.size() + " media.");
         ArrayList<ImageDescriptor> missingImages = this.mediaManager.getMissingImagesFrom(imagesFromPhone);
         writeImagesDescriptors(missingImages);
         System.out.println("Detected " + missingImages.size() + " images missing on computer.");
 
-        client.waitForPacket(PType.COMFIRM);
+        client.read(PType.COMFIRM);
 
         return new HandShakeData(true, missingImages);
     }
@@ -61,24 +59,25 @@ public class HandShake {
 
     }
 
-    private String receivePassword() throws InterruptedException, IOException, ClassNotFoundException {
-        return (String) new ObjectInputStream(new ByteArrayInputStream(client.waitForPacket(PType.PASSWORD_PACKET).data)).readUnshared();
+    private String receivePassword() {
+        return client.read(PType.PASSWORD_PACKET).readString();
     }
 
     private void sendPasswordResult(final boolean isAuth) throws IOException {
-        client.send(new SendSecurePacket(PType.PASSWORD_PACKET, Packet.getByteForObject(isAuth)));
+        client.send(new SPacket(PType.PASSWORD_PACKET, getByteForObject(isAuth)));
     }
 
-    private ArrayList<ImageDescriptor> receiveImagesDescriptors() throws InterruptedException, IOException, ClassNotFoundException {
-        final ReceiveSecurePacket packetDescriptorList = client.waitForPacket(PType.EXCHANGING_IMAGES_DESCRIPTOR);
-        final String json = (String) new ObjectInputStream(new ByteArrayInputStream(packetDescriptorList.getBytesData())).readUnshared();
+    private ArrayList<ImageDescriptor> receiveImagesDescriptors() throws IOException {
+        final RPacket packetDescriptorList = client.read(PType.EXCHANGING_IMAGES_DESCRIPTOR);
+        final String json = packetDescriptorList.readString();
 
         return new ObjectMapper().readValue(json, new TypeReference<>() {
         });
+
     }
 
     private void writeImagesDescriptors(final ArrayList<ImageDescriptor> descriptors) throws IOException {
         final String json = new ObjectMapper().writeValueAsString(descriptors);
-        client.send(new SendSecurePacket(PType.EXCHANGING_IMAGES_DESCRIPTOR, Packet.getByteForObject(json)));
+        client.send(new SPacket(PType.EXCHANGING_IMAGES_DESCRIPTOR).writeString(json));
     }
 }
