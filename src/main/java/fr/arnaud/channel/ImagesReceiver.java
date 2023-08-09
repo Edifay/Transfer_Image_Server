@@ -35,6 +35,9 @@ public class ImagesReceiver {
             out.close();
             System.gc();
             System.out.println("Flush " + descriptor.getName() + " total of \t\t" + (int) byteToMegaByte(descriptor.size) + "MB.");
+
+            if (!this.client.isConnected())
+                return new ImagesReceiverData();
         }
 
         return new ImagesReceiverData();
@@ -55,6 +58,8 @@ public class ImagesReceiver {
 
         while (currentData < descriptor.size) {
             RPacket data = this.client.read(PType.RECEIVING_DATA);
+            if (data == null)
+                return;
             byte[] bytes = data.getData();
             out.write(bytes);
             currentData += bytes.length;

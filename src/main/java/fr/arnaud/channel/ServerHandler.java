@@ -2,8 +2,10 @@ package fr.arnaud.channel;
 
 import fr.arnaud.channel.utils.CertLoader;
 import fr.arnaud.utils.SetupLoader;
+import fr.jazer.session.SPacket;
 import fr.jazer.session.Session;
 import fr.jazer.session.SessionServer;
+import fr.jazer.session.utils.ConnectionStatus;
 import fr.jazer.session.utils.crypted.CertFormat;
 import fr.jazer.session.utils.crypted.SecureType;
 import fr.jazer.session.utils.crypted.ServerCertConfig;
@@ -48,29 +50,5 @@ public class ServerHandler {
             System.err.println("Error during handling : " + session.getStringID() + "\n" + e.getMessage());
         }
     }
-
-
-
-
-/*
-    public void onNewClient(final SocketMake socketMake) {
-        ClientManager manager = null;
-        try {
-            manager = new ClientManager(settings, socketMake);
-            manager.handle();
-        } catch (IOException | InterruptedException | ClassNotFoundException e) {
-            System.err.println("Error during handling : " + socketMake.getIdentity() + "\n" + e.getMessage());
-        }
-
-        if (manager == null)
-            return;
-
-        try {
-            manager.closeClient();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-    }*/
 
 }
