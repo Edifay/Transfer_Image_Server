@@ -31,7 +31,6 @@ public class ImagesReceiver {
             System.out.println("Receiving " + descriptor.getName());
             final OutputStream out = this.mediaManager.getOutputStream(descriptor);
             receiveAndWrite(out, descriptor);
-            out.flush();
             out.close();
             System.gc();
             System.out.println("Flush " + descriptor.getName() + " total of \t\t" + (int) byteToMegaByte(descriptor.size) + "MB.");
@@ -71,6 +70,7 @@ public class ImagesReceiver {
             System.exit(-1);
         }
 
+        out.flush();
         new Thread(() -> ExifManager.manageExif(mediaManager, descriptor)).start();
     }
 
