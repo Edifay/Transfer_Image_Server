@@ -10,14 +10,14 @@ public class ImageDescriptor {
     public static final ImageDescriptor EMPTY = new ImageDescriptor("-1", -1, -1);
 
     public String path;
-    public int size;
+    public long size;
     public long createdAt = 0;
 
     public ImageDescriptor() {
 
     }
 
-    public ImageDescriptor(final String path, final int size, final long createdAt) {
+    public ImageDescriptor(final String path, final long size, final long createdAt) {
         this.path = path;
         this.size = size;
         this.createdAt = createdAt;

@@ -53,7 +53,7 @@ public class ImagesReceiver {
     }
 
     public void receiveAndWrite(final OutputStream out, final ImageDescriptor descriptor) throws IOException {
-        int currentData = 0;
+        long currentData = 0;
 
         while (currentData < descriptor.size) {
             RPacket data = this.client.read(PType.RECEIVING_DATA);
@@ -64,17 +64,19 @@ public class ImagesReceiver {
             currentData += bytes.length;
         }
 
+        System.out.println("Expected : " + descriptor.size + " received : " + currentData);
+
         if (currentData != descriptor.size) {
             System.err.println("IMAGE CORROMPU !");
             client.destroy();
-            System.exit(-1);
+           // System.exit(-1);
         }
 
         out.flush();
         new Thread(() -> ExifManager.manageExif(mediaManager, descriptor)).start();
     }
 
-    public static float byteToMegaByte(int value) {
+    public static float byteToMegaByte(long value) {
         return value / 1000000f;
     }
 
